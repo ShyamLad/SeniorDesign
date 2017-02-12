@@ -108,10 +108,10 @@ void loop() {
  // motospd(5,5,5);
 //Pixy_Align();
 //updateSonar();
-//sonarInfoDisplay();
+sonarInfoDisplay();
 //Do_Thingy();
 //Go_To_Object();
-wheel_speeds(40,270);
+//wheel_speeds(40,270);
 //motospd(0,0,40);
   delay(1000);
 }
@@ -233,23 +233,41 @@ void get_coordinates()
   }
 
 }
-void wheel_speeds(float tot_spd, float ang){
-  float results[4];
-  Relative_ang(results,ang);
+void wheel_speeds(float tot_spd, float ang){   //Input speed and direction you want to go from 0 to 360
+  float results[4]; //establish the results arrray for relative angle.
+  Relative_ang(results,ang); //returns relative angle from -30 to 30 and wheels. First two wheels are main wheels, last wheel compensates for directional movement
 
-  float Motor_2 = abs(((((-1/sqrt(3))*tan((results[0]/180)*M_PI))-1)*(tot_spd/(1/cos((results[0]/180)*M_PI)))));
-  float Motor_1 = abs(((((1/sqrt(3))*tan((results[0]/180)*M_PI))-1)*(tot_spd/(1/cos((results[0]/180)*M_PI)))));  
+  float Motor_2 = abs(((((-1/sqrt(3))*tan((results[0]/180)*M_PI))-1)*(tot_spd/(1/cos((results[0]/180)*M_PI))))); //maths
+  float Motor_1 = abs(((((1/sqrt(3))*tan((results[0]/180)*M_PI))-1)*(tot_spd/(1/cos((results[0]/180)*M_PI)))));  //more maths
 
-  float Motor_Comp = .0018*pow(results[0],3) - 0.1019*pow(results[0],2) + 2.446*results[0] + 0.8571;
+  float Motor_Comp = .0018*pow(results[0],3) - 0.1019*pow(results[0],2) + 2.446*results[0] + 0.8571; //equaiton for compensator found by experiment and excel curve fit
 
-int a = abs(results[1])-1;
-int b = abs(results[2])-1;
+
+
+//----------------------------------------------------------------------------------------
+//READ ME!!!!!!!
+//
+//What is done below may look confusing, and it is to an extent. This method was done in order to not have a bunch of if/else statements
+//
+// The general idea: Relative_ang() gives values to the array called results. results is an array where the first position is the relative angle and the following
+// three are motors, with the first two being main working motors and the last being a compensator for the direction
+// 
+// What we need to do is assign each of these wheels the proper wheel speed. Using the knowledge that the first two motors listed in the results array are the
+// main motors, and that the motors are called (+/-)1,2,3.....we can give the proper value to the proper motor. Since motospd(...,...,...) takes in three values that
+// are always in order from wheel 1 to 3,  we must assign the wheels from results an array value and then assign the proper speed at that specific array value and 
+  // asign it to an array that reorganizes the wheels so motospd can distribute the proper speed to the proper wheel....... this is a shitty explanation pls forgive me
+  //
+  //
+int a = abs(results[1])-1; //since the wheels are labled from 1 to 3, we subtract one to give it a proper position in the motors array below
+int b = abs(results[2])-1; // e.g. results[2] = wheel 3.......3-1 = 2.... 'b' will be in the position of motors[2]
 int c = abs(results[3])-1;
 
- float motors[3];
- motors[a]= (results[1]/(abs(results[1]))) * Motor_1;
- motors[b]= (results[2]/(abs(results[2]))) * Motor_2;
- motors[c]= (results[3]/(abs(results[3]))) * Motor_Comp;
+ float motors[3]; // establish the final wheel speed array to set wheels
+ motors[a]= (results[1]/(abs(results[1]))) * Motor_1;  //(results[1]/(abs(results[1]))) is to determine the directon of the wheel rotation (positive or negative)
+ motors[b]= (results[2]/(abs(results[2]))) * Motor_2;  
+ motors[c]= (results[3]/(abs(results[3]))) * Motor_Comp; // so since 'c' corresponds to the value of the wheel in results[3], the compensator value is assigned.
+ // this does not mean motor[c] will always be the thrid value in motors. if the compensator wheel is determined to be wheel 2, then 2-1 = 1, and motors[1] will be assinged
+ // the compenator value, which is the second value in the array for this case. 
 
 Serial.println(results[0]);
 Serial.println(results[1]);
@@ -265,7 +283,7 @@ Serial.println("------------------------------------");
 Serial.println("--------------Results---------------");
 Serial.println("------------------------------------");
 
- motospd(motors[0],motors[1],motors[2]); //At Min Speed, set compensator to 18. 
+ motospd(motors[0],motors[1],motors[2]); //set all the wheel seeds
 }
 
 
