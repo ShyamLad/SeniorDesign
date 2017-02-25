@@ -70,30 +70,33 @@ std::vector<struct node *> closed; //nodes that have already been evaluated
 
 std::vector<struct node *> neighbours; //list of neighboring nodes for the node being analyzed, we will use this l8ter g8tor
 
-
+//totally useless with the math library
 int abs(int i) {
 	return i >= 0 ? i : -i;
 }
 
+//returns node at a given x and y coordinate
 struct node * get_node(int x, int y){
 
-	return &grid[x][y];
+	return &grid[x][y]; //the & and * are all pointer shits, google it 
 
 }
 
-//calculate fcost
+//calculate fcost, whcih is just hcost + gcost
 int fcost(struct node *a)
 {
-	return a->gcost + a->hcost;
+	return a->gcost + a->hcost; //when attempting to retreive a variable from a struct node pointer, you gotta do this thing '->' rather than a.gcost. google it
 }
-
+// calculates distance to from node a to node b
 int getDistance(struct node *a, struct node *b){
 	int dstX = abs(a->posx - b->posx);
 	int dstY = abs(a->posy - b->posy);
 
-	return dstX + dstY;
+	return dstX + dstY; //since the robot will not do diagonal motions, we simply define the distance as x+y.....obviously you will need a diffrent equation to take diagonals into account
 }
 
+
+// checks if  a given node is in the closed list
 bool inClosed(struct node *current)
 {
 	for(int i = 0; i< closed.size(); i++){
@@ -102,7 +105,7 @@ bool inClosed(struct node *current)
 	}
 	return false;
 }
-
+// checks if a given node is in the open and closed list
 bool inOpen(struct node *current)
 {
 	for(int i = 0; i< open.size(); i++){
@@ -120,6 +123,10 @@ void printnode(struct node* node){ // print this bitch
 	cout << node->posy << "\n";
 }
 
+// 'member that parent struct node variable? well here is where we use it. Each node that is checked has a parent node that it refreences.
+//for example, start with node a, check nodes around. Choose node with lowest hcost, which is node b. 
+//We set node b's parent to be node a.....and then node c's parent will be node b, and etc........ do you feel it now, mr.krabs?
+// this parental chain will give us the actual list of nodes that make up the path, in order ( actually its backwards, but still in order)
 void RetracePath(struct node *startNode, struct node *endNode){
 	cout << "[retrace]" << "\n";
 	std::vector<struct node *> path;
@@ -139,49 +146,58 @@ void RetracePath(struct node *startNode, struct node *endNode){
 		}
 	}
 }
-void GetNeighbours(struct node *current){
-	neighbours.clear();
 
+//we check a given node for its neighbors
+//since we dont give a shit about diaginal movement, we can ignor diagonal nodes
+void GetNeighbours(struct node *current){
+	neighbours.clear(); //clear neighbor vector of everything
+
+	//loop through various coordinates around the current node coordinate
 	for(int x = -1; x<=1;x++){ 
 		for (int y = -1; y <= 1; y++){
-			if(abs(x)==abs(y))
+			if(abs(x)==abs(y)) //this makes it ignore diagonals 
 				continue;
 
 			int checkX = current->posx + x;
 			int checkY = current->posy + y;
-
-			if(checkX >= 0 && checkX < gridsizex && checkY >= 0 && checkY<gridsizey){
-				neighbours.push_back(&grid[checkX][checkY]);
+			//add to neighbors vector if the node is within the bounds of the grid
+			if(checkX >= 0 && checkX < gridsizex && checkY >= 0 && checkY<gridsizey){ 
+				neighbours.push_back(&grid[checkX][checkY]); //adds to back
 			}
 		}
 	}
 	return; 
 }
+
+//heres the money maker
+
 void FindPath (int start_x, int start_y, int target_x, int target_y){
-	struct node *startNode = get_node(start_x,start_y);
-	struct node *targetNode = get_node(target_x,target_y);
+	struct node *startNode = get_node(start_x,start_y); //gets node at start location
+	struct node *targetNode = get_node(target_x,target_y); //gets node at target location
 	//cout << "[1]" << "\n";
-	open.push_back(startNode);
+	open.push_back(startNode); //add start node to open list
 	//cout << open[0]->posy << "\n";
 
 	while(open.size() > 0 ){
 		//cout << "[2]" << "\n";
-		struct node *currentNode = open[0];
-		int index = 0;
-
+		struct node *currentNode = open[0]; //start analyzing the first node in the open list
+		int index = 0; 
+		//compare fcosts in all the nodes in open list, choose node with smallest fcost. IF two have equal fcosts, then compare hcosts. Smaller hcost wins
 		for (int i =1; i<open.size(); i++){
 			if(fcost(open[i]) < fcost(currentNode) || fcost(open[i]) == fcost(currentNode) && open[i]->hcost < currentNode->hcost){
-				currentNode = open[i];
+				currentNode = open[i]; //set current node
 				index = i;
 				
 			}
 			
 		}
-		open.erase(open.begin() + index);
-		closed.push_back(currentNode);
-		printnode(currentNode);
+		open.erase(open.begin() + index);//remove the current node from open list
+		closed.push_back(currentNode); //add current node to closed list
+		printnode(currentNode); // print current node, just a reference for you, nothing important
+		
+		//stops if current node is equal to target node. this means we have completed the path
 		if(currentNode == targetNode){
-			RetracePath(startNode, targetNode);
+			RetracePath(startNode, targetNode); //start retracing dat path
 			return;
 		}
 
