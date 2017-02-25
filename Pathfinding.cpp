@@ -12,22 +12,36 @@ using namespace std;
 
 // SO, the general idea of A* algo is to calculate the most optimal path to a location based on values that are given to each grid location.
 //The location with the lowest value is considered to be the most optimal. This is done repedtedly until you reach the target location
-//so we start with a location, say [0,0], and we begin calculating the distance 
+//We call each grid location a 'node'
+//so we start with a node, say [0,0], and we begin calculating the distance of the adjacent nodes from the start node (we call that the gcost)
+// and to distance to the target node (we call this the heuristic cost, or 'h cost')
+//the node with the lowest hcost is chosen, and the whole process starts again until the chosen node is the target node. 
+
+
+//**********************************************************************************************************************************************
+
+//Most A* algos have a seperate file for the node object, but im like fuck it lets use structs
+//A Struct, in simple terms, is a container for a bunch of variables, and you can basically treat them like objects
+
 struct node 
 	{
-		int posx; 
-		int posy;
-		int gcost;
-		int hcost;
-		bool walkable;
+		int posx; //x location of node in grid
+		int posy; //y loction of node in grid
+		int gcost; // distance from start node
+		int hcost; // distance to end node
+		bool walkable; // is this grid location occupied by an obstical or not
 
-		struct node* parent;
+		struct node* parent; // parent node pointer, we will use this later. Dont worry, ill explain it.....given that i dont get lazy and stop commenting lol 
 	};
 
-struct node grid[20][20];
-int gridsizex = 20;
+struct node grid[20][20]; // construct a grid of nodes, i put a 20 by 20 grid, but you can change it
+// also notice how i used 'struct node' as if it were an object. This makes it define a grid of the previously defined struct node.
+int gridsizex = 20; //self explanitory
 
-int gridsizey = 20;
+int gridsizey = 20; //^^
+
+
+// this portion initialized the grid, and gives values to some of the struct node variables
 void gridInit(){
 	for (int i = 0; i < gridsizex; i++)
 	{
@@ -38,6 +52,8 @@ void gridInit(){
 			grid[i][j].walkable = true;
 		}
 	}
+	
+	//** the below portion is only done to simulate obsticals in the environment. Remove when actually implementing the code
 	grid[0][10].walkable = false;
 	grid[0][9].walkable = false;
 	grid[1][10].walkable = false;
@@ -46,12 +62,13 @@ void gridInit(){
 
 }
 
-//using structures to represent nodes for open and closed lists
+//so you have probably wondered, 'hey shyam, how the gosh darn heck are we gonna know which node has been checked, and which nodes we should be checking?
+//well the answer is open and closed lists:
 std::vector<struct node *> open; // nodes that need to be evaluated
 
-std::vector<struct node *> closed; //already been evaluated
+std::vector<struct node *> closed; //nodes that have already been evaluated
 
-std::vector<struct node *> neighbours;
+std::vector<struct node *> neighbours; //list of neighboring nodes for the node being analyzed, we will use this l8ter g8tor
 
 
 int abs(int i) {
