@@ -1,3 +1,7 @@
+//this code was written by Shyam Lad and with a little help by his bff David, because shyam doesn't know shit about computer architecture and pointers
+//this shit has the MIT license thing on it so you can use it however you want, just make sure to cite us in your comments for dat credit
+//and follow me on insta @shyamlad
+
 #include <vector>
 //#include <Math.h>
 #include <iostream>
@@ -6,11 +10,12 @@ using namespace std;
 
 
 
-
-
+// SO, the general idea of A* algo is to calculate the most optimal path to a location based on values that are given to each grid location.
+//The location with the lowest value is considered to be the most optimal. This is done repedtedly until you reach the target location
+//so we start with a location, say [0,0], and we begin calculating the distance 
 struct node 
 	{
-		int posx;
+		int posx; 
 		int posy;
 		int gcost;
 		int hcost;
