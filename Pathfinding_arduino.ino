@@ -1,3 +1,5 @@
+//check out the pathfinding.cpp code in the repo for all comments and explanation. Im too lazy to transfer it over.
+
 #include <StandardCplusplus.h>
 #include <system_configuration.h>
 #include <unwind-cxx.h>
