@@ -15,7 +15,7 @@ using namespace std;
 //We call each grid location a 'node'
 //so we start with a node, say [0,0], and we begin calculating the distance of the adjacent nodes from the start node (we call that the gcost)
 // and to distance to the target node (we call this the heuristic cost, or 'h cost')
-//the node with the lowest hcost is chosen, and the whole process starts again until the chosen node is the target node. 
+//the node with the lowest fcost (gcost + hcost) is chosen, and the whole process starts again until the chosen node is the target node. 
 
 
 //**********************************************************************************************************************************************
@@ -201,17 +201,20 @@ void FindPath (int start_x, int start_y, int target_x, int target_y){
 			return;
 		}
 
-		GetNeighbours(currentNode);
+		GetNeighbours(currentNode); //find new neighbors 
+		
+		//go through neighbors, try to find which neighbors to choose to set to current node
 		for(int i = 0; i< neighbours.size(); i++){	
 			if (!neighbours[i]->walkable || inClosed(neighbours[i])){
 				continue;
 			}
+			//calculate movement cost to neighbor. basically comparing gcosts of all the neigbors and choosing the lowest one
 			int newMovementCostToNeighbour = currentNode->gcost + getDistance(currentNode,neighbours[i]);
 			if(newMovementCostToNeighbour < neighbours[i]->gcost || !inOpen(neighbours[i])){
 				neighbours[i]->gcost = newMovementCostToNeighbour;
 				neighbours[i]->hcost = getDistance(neighbours[i], targetNode);
 				neighbours[i]->parent = currentNode;
-
+				//Add to open list
 				if(!inOpen(neighbours[i]))
 				 	open.push_back(neighbours[i]);
 			}
@@ -220,7 +223,7 @@ void FindPath (int start_x, int start_y, int target_x, int target_y){
 	}
 } 
 
-
+//main method to test shit out
 int main(){
 	gridInit();
 	FindPath(0,0,10,10);
